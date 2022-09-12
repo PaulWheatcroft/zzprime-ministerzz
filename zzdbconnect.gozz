@@ -1,0 +1,32 @@
+package main
+
+import (
+	"log"
+	"os"
+	"database/sql"
+
+	"github.com/go-sql-driver/mysql"
+)
+
+
+func setDataBaseConnection() {
+	dsn := mysql.Config{
+		User:                 os.Getenv("DB_USER"),
+		Passwd:               os.Getenv("DB_PASSWORD"),
+		Net:                  "tcp",
+		Addr:                 os.Getenv("DB_ADDRESS"),
+		DBName:               os.Getenv("DB_NAME"),
+		AllowNativePasswords: true,
+	}
+
+	// Get a database handle
+	var err error
+	db, err = sql.Open("mysql", dsn.FormatDSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+}

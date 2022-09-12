@@ -1,0 +1,57 @@
+package main
+
+import (
+	"database/sql"
+	"fmt"
+	"log"
+
+	"github.com/go-sql-driver/mysql"
+)
+
+var db *sql.DB
+
+func main() {
+	// Data Source Name Properties
+	dsn := mysql.Config{
+		User:                 "root",
+		Passwd:               "Prim3MinisterL!Z",
+		Net:                  "tcp",
+		Addr:                 "127.0.0.1:3306",
+		DBName:               "pmdb",
+		AllowNativePasswords: true,
+	}
+
+	// Get a database handle
+	var err error
+	db, err = sql.Open("mysql", dsn.FormatDSN())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
+	pingErr := db.Ping()
+	if pingErr != nil {
+		log.Fatal(pingErr)
+	}
+	fmt.Println("Connected!")
+
+	primeMinisterID, err := addPrimeMinister("Arthur", "Balfour", "1902-07-12", "1905-12-04", 1, "Manchester East", "Conservative")
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Printf("ID of added Prime Minister: %v\n", primeMinisterID)
+}
+
+func addPrimeMinister(pm_first_name string, pm_last_name string, from_date string, to_date string, terms int, office string, party string) (int64, error) {
+	result, err := db.Exec("INSERT INTO prime_ministers_tbl (first_name, last_name, from_date, to_date, terms, office, party) VALUES (?, ?, ?, ?, ?, ?, ?)",
+	first_name, last_name, from_date, to_date, terms, office, party)
+	if err != nil {
+		return 0, fmt.Errorf("addPrimeMinister: %v", err)
+	}
+	id, err := result.LastInsertId()
+	if err != nil {
+		return 0, fmt.Errorf("addPrimeMinister: %v", err)
+	}
+	return id, nil
+}
