@@ -4,12 +4,13 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"time"
 	"reflect"
-	"encoding/json"
 	"os"
 	"github.com/joho/godotenv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"net/http"
 
 	"github.com/go-sql-driver/mysql"
@@ -27,6 +28,7 @@ type PrimeMinister struct {
 }
 
 var db *sql.DB
+
 
 func setDataBaseConnection() {
 	dsn := mysql.Config{
@@ -71,30 +73,12 @@ func getAllPrimeMinisters(context *gin.Context) {
     }
 
 	//Put the results in to JSON and pass to the context
-	primeMinistersToJson, err := json.Marshal(primeMinisters)
-	if err != nil {
-		fmt.Println("The JSON conversion went wrong")
-	}
 	fmt.Println("primeMinisters = ", reflect.TypeOf(primeMinisters))
 	fmt.Println(primeMinisters)
-	fmt.Println(string(primeMinistersToJson))
 	context.IndentedJSON(http.StatusOK, primeMinisters)
+	fmt.Println("The last line is", context.Request)
 
 }
-
-// func parsePrimeMinister(jsonBuffer []byte) ([]PrimeMinister, error) {
-// 	// We create an empty array
-//     primeMinister := []PrimeMinister{}
-
-//     // Unmarshal the json into it. this will use the struct tag
-//     err := json.Unmarshal(jsonBuffer, &primeMinister)
-//     if err != nil {
-//         return nil, err
-//     }
-
-//     // the array is now filled with users
-// 	return primeMinister, nil
-// }
 
 func addPrimeMinister(context *gin.Context) {
 	var newPriminister PrimeMinister
@@ -120,6 +104,14 @@ func main() {
 	}
 	fmt.Printf("I am running")
 	router := gin.Default()
+	router.Use(cors.New(cors.Config{
+        AllowOrigins:     []string{"http://localhost:3000"},
+        AllowMethods:     []string{"GET", "POST", "PUT", "PATCH"},
+        AllowHeaders:     []string{"Origin"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge: 12 * time.Hour,
+    }))
 	router.GET("/", getAllPrimeMinisters)
 	router.POST("/add", addPrimeMinister)
 	router.Run("localhost:9099")
